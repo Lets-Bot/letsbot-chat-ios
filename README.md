@@ -50,6 +50,22 @@ Or in `Package.swift`:
 pod 'LetsBotChat', '0.1.0'
 ```
 
+### CocoaPods directly from GitHub
+
+No CocoaPods trunk needed: install the tagged release straight from the repository.
+
+```ruby
+# Podfile
+platform :ios, '13.0'
+use_frameworks!
+
+target 'MyApp' do
+  pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.1.0'
+end
+```
+
+Then run `pod install`. (Swift Package Manager above always installs straight from GitHub.)
+
 ### Info.plist
 
 The chat lets users send photos, files and voice notes. Add these keys with user-facing text in every language your

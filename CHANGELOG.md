@@ -19,6 +19,8 @@ All notable changes to this project are documented here. The format follows
 - `setContext(_:)`, `setLocale(_:)`, `setTheme(_:)`.
 - `LetsBotDelegate` (open, close, message, unread, failure) and typed `LetsBotError` codes.
 - Visitor token stored in the Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`).
-- Privacy manifest (`PrivacyInfo.xcprivacy`), Swift Package Manager and CocoaPods support, example app.
+- Privacy manifest (`PrivacyInfo.xcprivacy`), Swift Package Manager and CocoaPods support (including CocoaPods
+  straight from the GitHub tag: `pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.1.0'`),
+  example app.
 
 [0.1.0]: https://github.com/Lets-Bot/letsbot-chat-ios/releases/tag/0.1.0
