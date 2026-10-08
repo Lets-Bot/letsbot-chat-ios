@@ -1,0 +1,15 @@
+.DS_Store
+/.build
+/.swiftpm
+/Packages
+xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+Package.resolved
+/Example/build
+Pods/
+*.ipa
+*.dSYM.zip
+*.dSYM

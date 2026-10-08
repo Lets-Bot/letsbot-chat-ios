@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build & test (iOS Simulator)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app
+
+      - name: Pick a simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        run: |
+          xcodebuild -scheme LetsBotChat \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .build/dd build
+
+      - name: Unit tests
+        run: |
+          xcodebuild test -scheme LetsBotChat \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath .build/dd
+
+      - name: Example app + hosted tests
+        working-directory: Example
+        run: |
+          xcodebuild test -project LetsBotChatExample.xcodeproj -scheme LetsBotChatExample \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath ../.build/dd-example
+
+  podspec:
+    name: CocoaPods lint
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint podspec
+        run: pod lib lint LetsBotChat.podspec --allow-warnings
