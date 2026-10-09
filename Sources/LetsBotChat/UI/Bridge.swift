@@ -9,6 +9,7 @@ enum BridgeEvent: Equatable {
     case unread(Int)
     case message(String)
     case error(String)
+    case chrome(ChromeEvent)
 
     /// Parses a `postMessage` body: a JSON string `{"lb":"<event>", ...}` (or the already-decoded dictionary).
     /// Returns `nil` for anything malformed or unknown.
@@ -43,6 +44,19 @@ enum BridgeEvent: Equatable {
         case "error":
             guard let code = object["code"] as? String, !code.isEmpty else { return nil }
             return .error(code)
+        case "chrome":
+            let statusBar = object["statusBar"] as? String
+            guard statusBar == "light" || statusBar == "dark" else { return nil }
+            var event = ChromeEvent(lightStatusBar: statusBar == "light")
+            let fields: [(String, WritableKeyPath<ChromeEvent, String?>)] = [
+                ("header", \.header), ("background", \.background),
+            ]
+            for (field, keyPath) in fields {
+                guard let raw = object[field] else { continue }
+                guard let string = raw as? String, let hex = ChatChrome.normalizedHex(string) else { return nil }
+                event[keyPath: keyPath] = hex
+            }
+            return .chrome(event)
         default:
             return nil
         }
@@ -123,7 +137,8 @@ enum BridgeScript {
         token: String,
         appId: String,
         context: [String: String],
-        color: String?
+        color: String?,
+        insets: [String: Double]? = nil
     ) -> [String: Any] {
         var payload: [String: Any] = [
             "token": token,
@@ -133,6 +148,13 @@ enum BridgeScript {
             "context": context,
         ]
         if let color { payload["color"] = color }
+        if let insets { payload["insets"] = insets }
         return payload
+    }
+
+    /// Safe-area insets in CSS px (= iOS points) for `boot({insets})` / `setInsets(...)` (API.md §8.1).
+    static func insetsPayload(top: Double, left: Double, bottom: Double, right: Double) -> [String: Double] {
+        func clean(_ value: Double) -> Double { value.isFinite && value > 0 ? (value * 100).rounded() / 100 : 0 }
+        return ["top": clean(top), "bottom": clean(bottom), "left": clean(left), "right": clean(right)]
     }
 }

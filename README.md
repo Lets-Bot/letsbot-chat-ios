@@ -34,12 +34,12 @@ Always pin an exact version.
 ### Swift Package Manager
 
 Xcode → File → Add Package Dependencies… → `https://github.com/Lets-Bot/letsbot-chat-ios` → Dependency rule
-**Exact Version** `0.1.0` → add product **LetsBotChat** to your app target.
+**Exact Version** `0.2.0` → add product **LetsBotChat** to your app target.
 
 Or in `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/Lets-Bot/letsbot-chat-ios", exact: "0.1.0"),
+.package(url: "https://github.com/Lets-Bot/letsbot-chat-ios", exact: "0.2.0"),
 // …
 .target(name: "MyApp", dependencies: [.product(name: "LetsBotChat", package: "letsbot-chat-ios")]),
 ```
@@ -47,7 +47,7 @@ Or in `Package.swift`:
 ### CocoaPods
 
 ```ruby
-pod 'LetsBotChat', '0.1.0'
+pod 'LetsBotChat', '0.2.0'
 ```
 
 ### CocoaPods directly from GitHub
@@ -60,7 +60,7 @@ platform :ios, '13.0'
 use_frameworks!
 
 target 'MyApp' do
-  pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.1.0'
+  pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.2.0'
 end
 ```
 
@@ -102,7 +102,7 @@ When the user switches language: `LetsBot.setLocale("en")`. Arabic is rendered r
 UIKit:
 
 ```swift
-LetsBot.present(from: self)   // modal sheet; LetsBot.hide() closes it
+LetsBot.present(from: self)   // full screen; LetsBot.hide() closes it
 ```
 
 or push / embed it yourself:
@@ -114,10 +114,23 @@ navigationController?.pushViewController(LetsBotChatViewController(), animated: 
 SwiftUI (iOS 14+):
 
 ```swift
-.sheet(isPresented: $showChat) {
+.fullScreenCover(isPresented: $showChat) {
     LetsBotChatView()          // or LetsBotChatView(onClose: { showChat = false })
 }
 ```
+
+The chat screen is **edge-to-edge**: the chat header colour fills the area under the status bar / notch, the
+composer stays above the home indicator and the keyboard, and the status-bar icons follow the header (white icons on
+a dark header). UIKit restores your screen's own status-bar style when the chat closes.
+
+- `LetsBotChatView` already ignores the safe area — don't add padding or a background around it.
+- Pushing `LetsBotChatViewController` on a navigation stack keeps your navigation bar; the chat then starts below
+  it. Hide the bar (`setNavigationBarHidden(true, animated:)`) for the full-screen look.
+- Embedding it as a child view controller: return it from your container's `childForStatusBarStyle` so the status
+  bar follows the chat header.
+- SwiftUI decides the status-bar style itself (it follows the colour scheme), so with `LetsBotChatView` the icons
+  may not match a dark header in light mode. Call `LetsBot.present(from:)` with your top view controller if you need
+  the exact match.
 
 Tell the team and the AI assistant what the user is looking at (optional, recommended):
 
@@ -244,7 +257,7 @@ The push token is registered with LetsBot as soon as the user has a chat session
 - The chat web view only loads the LetsBot chat URL. Any other http(s) link opens in the system browser; other schemes
   are blocked. The JavaScript bridge (`letsbot` message handler) only accepts messages from the LetsBot origin's main
   frame, and the handler is registered through a weak proxy (no retain cycle).
-- Requests carry `X-LB-App-Id` (your bundle ID), `X-LB-Platform: ios` and `X-LB-SDK: ios/0.1.0`. No cookies.
+- Requests carry `X-LB-App-Id` (your bundle ID), `X-LB-Platform: ios` and `X-LB-SDK: ios/0.2.0`. No cookies.
 - The package ships a privacy manifest (`PrivacyInfo.xcprivacy`): no tracking, no tracking domains, no required-reason
   APIs. Declared collected data (linked to the user, app functionality only): user ID, device ID (push token), name,
   e-mail, phone number, customer support messages, photos/videos, audio (voice notes), other user content. Reflect

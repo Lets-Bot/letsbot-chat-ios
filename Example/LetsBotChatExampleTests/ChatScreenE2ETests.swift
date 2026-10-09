@@ -51,11 +51,27 @@ final class ChatScreenE2ETests: XCTestCase, LetsBotDelegate {
         let boot = try XCTUnwrap(messages.first.flatMap { $0.data(using: .utf8) })
         let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: boot) as? [String: Any])
         XCTAssertEqual(payload["platform"] as? String, "ios")
-        XCTAssertEqual(payload["sdk"] as? String, "ios/0.1.0")
+        XCTAssertEqual(payload["sdk"] as? String, "ios/0.2.0")
         XCTAssertEqual(payload["appId"] as? String, "net.letsbot.chat.example")
         XCTAssertEqual(payload["color"] as? String, "#0e7c66")
         XCTAssertEqual(payload["context"] as? [String: String], ["screen": "e2e"])
         XCTAssertEqual((payload["token"] as? String)?.count, 84)
+        let insets = try XCTUnwrap(payload["insets"] as? [String: Double])
+        XCTAssertEqual(Set(insets.keys), ["top", "bottom", "left", "right"])
+        XCTAssertEqual(try XCTUnwrap(insets["top"]), Double(chat.view.safeAreaInsets.top), accuracy: 0.01)
+
+        // Edge-to-edge web view + chrome event (sent by the mock page before the echo).
+        let webView = try XCTUnwrap(findWebView(in: chat.view) as? WKWebView)
+        chat.view.layoutIfNeeded()
+        XCTAssertFalse(chat.view.bounds.isEmpty)
+        XCTAssertEqual(webView.frame, chat.view.bounds)
+        XCTAssertEqual(webView.scrollView.contentInsetAdjustmentBehavior, .never)
+        XCTAssertEqual(chat.preferredStatusBarStyle, .lightContent)
+        XCTAssertEqual(chat.view.backgroundColor, ChatChrome.color("#f5f7f9"))
+        XCTAssertEqual(
+            LetsBotChatViewController.chromeCache.load(baseURL: base, appKey: "lbk_e2e", theme: "dark"),
+            ChatChrome(lightStatusBar: true, header: "#0e7c66", background: "#f5f7f9")
+        )
 
         // Native → page after boot.
         messageExpectation = expectation(description: "context pushed")
@@ -64,7 +80,6 @@ final class ChatScreenE2ETests: XCTestCase, LetsBotDelegate {
         XCTAssertEqual(messages.last, #"ctx:{"order_id":"7","screen":"order"}"#)
 
         // Page → native close.
-        let webView = try XCTUnwrap(findWebView(in: chat.view) as? WKWebView)
         webView.evaluateJavaScript("window.lbClose()", completionHandler: nil)
         wait(for: [closed], timeout: 10)
 

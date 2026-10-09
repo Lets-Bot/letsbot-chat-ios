@@ -14,7 +14,7 @@ import Combine
 /// Call the UI methods (`present`, `hide`, `handleNotification`) from the main thread. Everything else is
 /// thread-safe. Delegate callbacks and observers are delivered on the main thread.
 public enum LetsBot {
-    /// SDK version (`0.1.0`).
+    /// SDK version (`0.2.0`).
     public static let sdkVersion = DeviceInfo.sdkVersion
 
     /// Posted on the main thread when ``unreadCount`` changes. `userInfo[LetsBot.unreadCountUserInfoKey]` is an `Int`.

@@ -18,6 +18,25 @@ final class BridgeTests: XCTestCase {
         XCTAssertEqual(BridgeEvent.parse(#"{"lb":"error","code":"blocked"}"#), .error("blocked"))
     }
 
+    func testParsesChrome() {
+        XCTAssertEqual(
+            BridgeEvent.parse(##"{"lb":"chrome","statusBar":"light","header":"#0E7C66","background":"#f5f7f9"}"##),
+            .chrome(ChromeEvent(lightStatusBar: true, header: "#0e7c66", background: "#f5f7f9"))
+        )
+        XCTAssertEqual(BridgeEvent.parse(##"{"lb":"chrome","statusBar":"dark"}"##),
+                       .chrome(ChromeEvent(lightStatusBar: false, header: nil, background: nil)))
+        for raw in [
+            ##"{"lb":"chrome"}"##,
+            ##"{"lb":"chrome","statusBar":"white"}"##,
+            ##"{"lb":"chrome","statusBar":"light","header":"green"}"##,
+            ##"{"lb":"chrome","statusBar":"light","header":"#0e7c6"}"##,
+            ##"{"lb":"chrome","statusBar":"dark","background":"#fff"}"##,
+            ##"{"lb":"chrome","statusBar":"dark","background":12}"##,
+        ] {
+            XCTAssertNil(BridgeEvent.parse(raw), raw)
+        }
+    }
+
     func testAcceptsDictionaryBodies() {
         XCTAssertEqual(BridgeEvent.parse(["lb": "unread", "count": 2]), .unread(2))
     }
@@ -77,13 +96,25 @@ final class BridgeTests: XCTestCase {
         let script = try XCTUnwrap(BridgeScript.call("boot", payload))
         XCTAssertEqual(
             script,
-            ##"window.LetsBotHost && window.LetsBotHost.boot({"appId":"com.acme.app","color":"#0e7c66","context":{"screen":"home"},"platform":"ios","sdk":"ios\/0.1.0","token":"tok"});"##
+            ##"window.LetsBotHost && window.LetsBotHost.boot({"appId":"com.acme.app","color":"#0e7c66","context":{"screen":"home"},"platform":"ios","sdk":"ios\/0.2.0","token":"tok"});"##
         )
     }
 
     func testBootPayloadOmitsColorWhenNotSet() {
         let payload = BridgeScript.bootPayload(token: "t", appId: "a", context: [:], color: nil)
         XCTAssertNil(payload["color"])
+        XCTAssertNil(payload["insets"])
+    }
+
+    func testInsetsSerialiseAsCSSPixels() throws {
+        let insets = BridgeScript.insetsPayload(top: 59, left: 0, bottom: 34.333333, right: -1)
+        XCTAssertEqual(insets, ["top": 59, "bottom": 34.33, "left": 0, "right": 0])
+        let payload = BridgeScript.bootPayload(token: "t", appId: "a", context: [:], color: nil, insets: insets)
+        XCTAssertEqual(payload["insets"] as? [String: Double], insets)
+        XCTAssertEqual(
+            BridgeScript.call("setInsets", BridgeScript.insetsPayload(top: 20, left: 0, bottom: 0, right: 0)),
+            #"window.LetsBotHost && window.LetsBotHost.setInsets({"bottom":0,"left":0,"right":0,"top":20});"#
+        )
     }
 
     func testScriptArgumentsAreEscaped() throws {

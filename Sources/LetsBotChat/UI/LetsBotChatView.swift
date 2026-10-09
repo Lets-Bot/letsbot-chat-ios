@@ -4,14 +4,16 @@ import SwiftUI
 /// The LetsBot chat screen for SwiftUI.
 ///
 /// ```swift
-/// .sheet(isPresented: $showChat) { LetsBotChatView() }
+/// .fullScreenCover(isPresented: $showChat) { LetsBotChatView() }
 /// ```
+///
+/// The chat is edge-to-edge: it ignores the safe area (the page paints its header colour under the status bar and
+/// pads its composer above the home indicator and the keyboard itself).
 ///
 /// When the user taps the chat's close button the view calls `onClose`; when `onClose` is `nil` it dismisses the
 /// enclosing sheet / navigation destination through the environment.
 @available(iOS 14.0, *)
-public struct LetsBotChatView: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) private var presentationMode
+public struct LetsBotChatView: View {
     private let onClose: (() -> Void)?
 
     /// - Parameter onClose: Called when the chat asks to close. `nil` = dismiss via `presentationMode`.
@@ -19,13 +21,24 @@ public struct LetsBotChatView: UIViewControllerRepresentable {
         self.onClose = onClose
     }
 
-    public func makeUIViewController(context: Context) -> LetsBotChatViewController {
+    public var body: some View {
+        LetsBotChatRepresentable(onClose: onClose)
+            .ignoresSafeArea()
+    }
+}
+
+@available(iOS 14.0, *)
+struct LetsBotChatRepresentable: UIViewControllerRepresentable {
+    @Environment(\.presentationMode) private var presentationMode
+    let onClose: (() -> Void)?
+
+    func makeUIViewController(context: Context) -> LetsBotChatViewController {
         let controller = LetsBotChatViewController()
         controller.onClose = closeAction
         return controller
     }
 
-    public func updateUIViewController(_ controller: LetsBotChatViewController, context: Context) {
+    func updateUIViewController(_ controller: LetsBotChatViewController, context: Context) {
         controller.onClose = closeAction
     }
 

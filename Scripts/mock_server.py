@@ -2,8 +2,8 @@
 """Local mock of the LetsBot In-App Chat SDK API (API.md v1) for end-to-end tests of the chat screen.
 
 Serves `config`, `session`, `identify`, `logout`, `device`, `unread` and a minimal `ui` page that speaks the
-page <-> native bridge: posts `ready`, and on `LetsBotHost.boot(...)` echoes the boot payload back as a `message`
-event, reports `unread` 0 and then asks to `close`.
+page <-> native bridge: posts `ready`, and on `LetsBotHost.boot(...)` reports `unread` 0 and its `chrome` colours,
+then echoes the boot payload back as a `message` event; `window.lbClose()` asks to `close`.
 
 Usage: python3 Scripts/mock_server.py [port]   (default 8765, binds 127.0.0.1)
 """
@@ -21,8 +21,10 @@ UI_HTML = """<!doctype html>
   window.LetsBotHost = {
     boot: function (p) {
       post({lb: "unread", count: 0});
+      post({lb: "chrome", statusBar: "light", header: "#0e7c66", background: "#f5f7f9"});
       post({lb: "message", t: JSON.stringify(p)});
     },
+    setInsets: function (i) { post({lb: "message", t: "insets:" + JSON.stringify(i)}); },
     setContext: function (c) { post({lb: "message", t: "ctx:" + JSON.stringify(c)}); },
     setTheme: function (t) { post({lb: "message", t: "theme:" + t}); }
   };

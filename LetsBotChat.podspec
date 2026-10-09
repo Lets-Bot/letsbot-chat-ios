@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'LetsBotChat'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'LetsBot In-App Chat for iOS: support chat answered by your LetsBot AI assistant and team.'
   s.description      = <<-DESC
     Add a support chat to your iOS app. Conversations are answered by the same LetsBot AI assistant and human team

@@ -6,6 +6,11 @@ import WebKit
 /// Usually you call ``LetsBot/present(from:animated:)``. Create it yourself to push it on a navigation stack or embed
 /// it as a child view controller. It closes itself when the user taps the close button of the chat; set ``onClose``
 /// to handle that yourself instead.
+///
+/// The screen is edge-to-edge: the chat page fills the whole view, paints its header colour under the status bar and
+/// keeps its composer above the home indicator and the keyboard. The status-bar style follows the chat header
+/// (``preferredStatusBarStyle``); when you embed the controller as a child, forward it from your container with
+/// `childForStatusBarStyle`.
 public final class LetsBotChatViewController: UIViewController {
     /// Called when the chat asks to close. When `nil`, the controller dismisses itself (or pops, when pushed).
     public var onClose: (() -> Void)?
@@ -18,11 +23,22 @@ public final class LetsBotChatViewController: UIViewController {
     private var booted = false
     private var isOpen = false
     private var loadTask: Task<Void, Never>?
+    private var chrome: ChatChrome?
+    private var chromeTheme: String?
+    private var insetsSent: [String: Double]?
     private static let handlerName = "letsbot"
+    static var chromeCache = ChromeCache()
 
     public init() {
         super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .pageSheet
+        modalPresentationStyle = .fullScreen
+        modalPresentationCapturesStatusBarAppearance = true
+    }
+
+    /// Light icons on a dark chat header, dark icons on a light one. UIKit returns to the presenting screen's own
+    /// style when the chat is dismissed.
+    override public var preferredStatusBarStyle: UIStatusBarStyle {
+        currentChrome().statusBarStyle
     }
 
     @available(*, unavailable)
@@ -34,8 +50,9 @@ public final class LetsBotChatViewController: UIViewController {
 
     override public func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
         applyInterfaceStyle()
+        let initial = currentChrome()
+        view.backgroundColor = initial.backgroundColor
 
         let contentController = WKUserContentController()
         // Weak proxy: the content controller retains its handlers, so registering `self` would leak the screen.
@@ -53,8 +70,10 @@ public final class LetsBotChatViewController: UIViewController {
         webView.uiDelegate = self
         webView.allowsLinkPreview = false
         webView.isOpaque = false
-        webView.backgroundColor = .systemBackground
-        webView.scrollView.backgroundColor = .systemBackground
+        webView.backgroundColor = initial.backgroundColor
+        webView.scrollView.backgroundColor = initial.backgroundColor
+        // Edge-to-edge: the page pads itself with env(safe-area-inset-*) and the insets passed in boot/setInsets.
+        webView.scrollView.contentInsetAdjustmentBehavior = .never
         webView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(webView)
 
@@ -62,10 +81,9 @@ public final class LetsBotChatViewController: UIViewController {
         spinner.hidesWhenStopped = true
         view.addSubview(spinner)
 
-        let guide = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            webView.topAnchor.constraint(equalTo: guide.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -101,6 +119,11 @@ public final class LetsBotChatViewController: UIViewController {
            LetsBot.runtime.theme == .auto {
             sendTheme()
         }
+    }
+
+    override public func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        sendInsets()
     }
 
     // MARK: Loading
@@ -162,8 +185,10 @@ public final class LetsBotChatViewController: UIViewController {
             let context = await engine.context
             await MainActor.run {
                 guard let self else { return }
+                let insets = self.currentInsets()
+                self.insetsSent = insets
                 let payload = BridgeScript.bootPayload(
-                    token: token, appId: appId, context: context, color: configuration.colorHex
+                    token: token, appId: appId, context: context, color: configuration.colorHex, insets: insets
                 )
                 self.evaluate(BridgeScript.call("boot", payload))
                 self.booted = true
@@ -188,8 +213,71 @@ public final class LetsBotChatViewController: UIViewController {
     }
 
     private func sendTheme() {
+        refreshChromeForTheme()
         guard booted else { return }
         evaluate(BridgeScript.call("setTheme", resolvedTheme()))
+    }
+
+    private func currentInsets() -> [String: Double] {
+        let insets = view.safeAreaInsets
+        return BridgeScript.insetsPayload(
+            top: Double(insets.top), left: Double(insets.left), bottom: Double(insets.bottom), right: Double(insets.right)
+        )
+    }
+
+    private func sendInsets() {
+        guard booted, isViewLoaded else { return }
+        let insets = currentInsets()
+        guard insets != insetsSent else { return }
+        insetsSent = insets
+        evaluate(BridgeScript.call("setInsets", insets))
+    }
+
+    // MARK: Chrome (status bar + background)
+
+    /// Chrome for the current theme: reported by the page, else cached from an earlier session, else neutral.
+    private func currentChrome() -> ChatChrome {
+        let theme = resolvedTheme()
+        if let chrome, chromeTheme == theme { return chrome }
+        let initial = initialChrome(theme: theme)
+        chrome = initial
+        chromeTheme = theme
+        return initial
+    }
+
+    private func initialChrome(theme: String) -> ChatChrome {
+        let configuration = LetsBot.runtime.configuration
+        if let configuration,
+           let cached = Self.chromeCache.load(baseURL: configuration.baseURL, appKey: configuration.appKey, theme: theme) {
+            return cached
+        }
+        return ChatChrome.neutral(dark: theme == "dark", brandColor: configuration?.colorHex)
+    }
+
+    private func refreshChromeForTheme() {
+        let before = chrome
+        let chrome = currentChrome()
+        if chrome != before { apply(chrome) }
+    }
+
+    private func applyChrome(_ event: ChromeEvent) {
+        let theme = resolvedTheme()
+        let updated = currentChrome().merged(with: event)
+        chrome = updated
+        chromeTheme = theme
+        apply(updated)
+        if let configuration = LetsBot.runtime.configuration {
+            Self.chromeCache.save(updated, baseURL: configuration.baseURL, appKey: configuration.appKey, theme: theme)
+        }
+    }
+
+    private func apply(_ chrome: ChatChrome) {
+        guard isViewLoaded else { return }
+        let background = chrome.backgroundColor
+        view.backgroundColor = background
+        webView.backgroundColor = background
+        webView.scrollView.backgroundColor = background
+        setNeedsStatusBarAppearanceUpdate()
     }
 
     private func evaluate(_ script: String?) {
@@ -231,6 +319,8 @@ public final class LetsBotChatViewController: UIViewController {
             LetsBot.runtime.delegate?.letsBotDidReceiveMessage(text)
         case let .error(code):
             LetsBot.notifyFailure(LetsBotError(code: code))
+        case let .chrome(event):
+            applyChrome(event)
         }
     }
 

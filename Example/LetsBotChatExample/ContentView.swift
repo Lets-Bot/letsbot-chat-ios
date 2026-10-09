@@ -73,9 +73,8 @@ struct ContentView: View {
             }
             .navigationTitle("LetsBot Example")
         }
-        .sheet(isPresented: $showChat) {
+        .fullScreenCover(isPresented: $showChat) {
             LetsBotChatView()
-                .ignoresSafeArea(edges: .bottom)
         }
     }
 
