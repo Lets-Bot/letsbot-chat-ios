@@ -3,6 +3,11 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-10-10
+
+### Changed
+- Minimum iOS version is now 15.0 (current Xcode no longer builds for iOS 13 and 14).
+
 ## [0.2.0] - 2026-10-09
 
 ### Changed

@@ -42,7 +42,7 @@ final class ChatEngineTests: XCTestCase {
         XCTAssertEqual(device["platform"] as? String, "ios")
         XCTAssertEqual(device["app_id"] as? String, "com.acme.app")
         XCTAssertEqual(device["app_version"] as? String, "2.3.0")
-        XCTAssertEqual(device["sdk"] as? String, "ios/0.2.0")
+        XCTAssertEqual(device["sdk"] as? String, "ios/0.2.1")
         XCTAssertEqual(device["os_version"] as? String, "17.5")
         XCTAssertEqual(body["ctx"] as? [String: String], ["screen": "order_details", "order_id": "1234"])
     }
@@ -203,7 +203,7 @@ final class ChatEngineTests: XCTestCase {
         XCTAssertEqual(body["platform"] as? String, "ios")
         XCTAssertEqual(body["app_id"] as? String, "com.acme.app")
         XCTAssertEqual(body["app_version"] as? String, "2.3.0")
-        XCTAssertEqual(body["sdk"] as? String, "ios/0.2.0")
+        XCTAssertEqual(body["sdk"] as? String, "ios/0.2.1")
         XCTAssertEqual(body["locale"] as? String, "ar")
         XCTAssertEqual(body["sandbox"] as? Bool, true)
     }

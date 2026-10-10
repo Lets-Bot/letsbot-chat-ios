@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'LetsBotChat'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'LetsBot In-App Chat for iOS: support chat answered by your LetsBot AI assistant and team.'
   s.description      = <<-DESC
     Add a support chat to your iOS app. Conversations are answered by the same LetsBot AI assistant and human team
@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => s.version.to_s }
   s.documentation_url = 'https://letsbot.net/developers/in-app-chat'
 
-  s.ios.deployment_target = '13.0'
+  s.ios.deployment_target = '15.0'
   s.swift_versions   = ['5.9', '5.10', '6.0']
 
   s.source_files     = 'Sources/LetsBotChat/**/*.swift'

@@ -36,7 +36,7 @@ final class APIClientTests: XCTestCase {
         let request = try XCTUnwrap(MockServer.shared.requests("session").first)
         XCTAssertEqual(request.header("X-LB-App-Id"), "com.acme.app")
         XCTAssertEqual(request.header("X-LB-Platform"), "ios")
-        XCTAssertEqual(request.header("X-LB-SDK"), "ios/0.2.0")
+        XCTAssertEqual(request.header("X-LB-SDK"), "ios/0.2.1")
         XCTAssertEqual(request.header("Accept"), "application/json")
         XCTAssertEqual(request.header("Content-Type"), "application/json")
         XCTAssertNil(request.header("X-LB-Visitor"))

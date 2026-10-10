@@ -1,7 +1,7 @@
 # LetsBot Chat for iOS
 
 [![CI](https://github.com/Lets-Bot/letsbot-chat-ios/actions/workflows/ci.yml/badge.svg)](https://github.com/Lets-Bot/letsbot-chat-ios/actions/workflows/ci.yml)
-![iOS 13+](https://img.shields.io/badge/iOS-13%2B-blue)
+![iOS 15+](https://img.shields.io/badge/iOS-15%2B-blue)
 ![SPM + CocoaPods](https://img.shields.io/badge/SPM%20%7C%20CocoaPods-supported-brightgreen)
 ![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -22,7 +22,7 @@ Docs: <https://letsbot.net/developers/in-app-chat>
 
 ## Requirements
 
-- iOS 13.0+ (`LetsBotChatView` for SwiftUI: iOS 14.0+)
+- iOS 15.0+
 - Swift 5.9+ / Xcode 15+
 - A LetsBot **App Key** (LetsBot panel → Channels → In-App Chat) and your app's bundle ID registered there
   (Platforms). The App Key is public and safe to ship in the app.
@@ -34,12 +34,12 @@ Always pin an exact version.
 ### Swift Package Manager
 
 Xcode → File → Add Package Dependencies… → `https://github.com/Lets-Bot/letsbot-chat-ios` → Dependency rule
-**Exact Version** `0.2.0` → add product **LetsBotChat** to your app target.
+**Exact Version** `0.2.1` → add product **LetsBotChat** to your app target.
 
 Or in `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/Lets-Bot/letsbot-chat-ios", exact: "0.2.0"),
+.package(url: "https://github.com/Lets-Bot/letsbot-chat-ios", exact: "0.2.1"),
 // …
 .target(name: "MyApp", dependencies: [.product(name: "LetsBotChat", package: "letsbot-chat-ios")]),
 ```
@@ -47,7 +47,7 @@ Or in `Package.swift`:
 ### CocoaPods
 
 ```ruby
-pod 'LetsBotChat', '0.2.0'
+pod 'LetsBotChat', '0.2.1'
 ```
 
 ### CocoaPods directly from GitHub
@@ -56,11 +56,11 @@ No CocoaPods trunk needed: install the tagged release straight from the reposito
 
 ```ruby
 # Podfile
-platform :ios, '13.0'
+platform :ios, '15.0'
 use_frameworks!
 
 target 'MyApp' do
-  pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.2.0'
+  pod 'LetsBotChat', :git => 'https://github.com/Lets-Bot/letsbot-chat-ios.git', :tag => '0.2.1'
 end
 ```
 
@@ -257,7 +257,7 @@ The push token is registered with LetsBot as soon as the user has a chat session
 - The chat web view only loads the LetsBot chat URL. Any other http(s) link opens in the system browser; other schemes
   are blocked. The JavaScript bridge (`letsbot` message handler) only accepts messages from the LetsBot origin's main
   frame, and the handler is registered through a weak proxy (no retain cycle).
-- Requests carry `X-LB-App-Id` (your bundle ID), `X-LB-Platform: ios` and `X-LB-SDK: ios/0.2.0`. No cookies.
+- Requests carry `X-LB-App-Id` (your bundle ID), `X-LB-Platform: ios` and `X-LB-SDK: ios/0.2.1`. No cookies.
 - The package ships a privacy manifest (`PrivacyInfo.xcprivacy`): no tracking, no tracking domains, no required-reason
   APIs. Declared collected data (linked to the user, app functionality only): user ID, device ID (push token), name,
   e-mail, phone number, customer support messages, photos/videos, audio (voice notes), other user content. Reflect
@@ -320,7 +320,6 @@ pod lib lint LetsBotChat.podspec --allow-warnings
 ```
 
 > Xcode 27 only builds iOS 15.0+ deployment targets. `pod lib lint` therefore fails there with
-> "deployment target … 13.0 … supported range is 15.0" — lint a temporary copy with `s.ios.deployment_target = '15.0'`
 > to validate the sources, or lint with Xcode 16 (as CI does). SPM consumers are unaffected.
 
 ## Support

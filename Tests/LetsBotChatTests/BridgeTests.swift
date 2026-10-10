@@ -96,7 +96,7 @@ final class BridgeTests: XCTestCase {
         let script = try XCTUnwrap(BridgeScript.call("boot", payload))
         XCTAssertEqual(
             script,
-            ##"window.LetsBotHost && window.LetsBotHost.boot({"appId":"com.acme.app","color":"#0e7c66","context":{"screen":"home"},"platform":"ios","sdk":"ios\/0.2.0","token":"tok"});"##
+            ##"window.LetsBotHost && window.LetsBotHost.boot({"appId":"com.acme.app","color":"#0e7c66","context":{"screen":"home"},"platform":"ios","sdk":"ios\/0.2.1","token":"tok"});"##
         )
     }
 

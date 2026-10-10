@@ -5,7 +5,7 @@ import UIKit
 
 /// Static facts about the host app and device that LetsBot needs (sent as headers / in `session` and `device`).
 struct DeviceInfo: Equatable, Sendable {
-    static let sdkVersion = "0.2.0"
+    static let sdkVersion = "0.2.1"
     static let sdkHeader = "ios/\(sdkVersion)"
     static let platform = "ios"
 

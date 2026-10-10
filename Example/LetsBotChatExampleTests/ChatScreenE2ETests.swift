@@ -51,7 +51,7 @@ final class ChatScreenE2ETests: XCTestCase, LetsBotDelegate {
         let boot = try XCTUnwrap(messages.first.flatMap { $0.data(using: .utf8) })
         let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: boot) as? [String: Any])
         XCTAssertEqual(payload["platform"] as? String, "ios")
-        XCTAssertEqual(payload["sdk"] as? String, "ios/0.2.0")
+        XCTAssertEqual(payload["sdk"] as? String, "ios/0.2.1")
         XCTAssertEqual(payload["appId"] as? String, "net.letsbot.chat.example")
         XCTAssertEqual(payload["color"] as? String, "#0e7c66")
         XCTAssertEqual(payload["context"] as? [String: String], ["screen": "e2e"])

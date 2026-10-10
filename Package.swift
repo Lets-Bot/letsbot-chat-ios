@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "LetsBotChat",
     platforms: [
-        .iOS(.v13),
+        .iOS(.v15),
     ],
     products: [
         .library(name: "LetsBotChat", targets: ["LetsBotChat"]),
